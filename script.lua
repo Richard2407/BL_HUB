@@ -1,13 +1,14 @@
--- BL HUB Otimizado | Blox Fruits
-
+-- Carregando Rayfield
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+-- Definindo variáveis
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
--- Utils
+-- Função para criar ESP
 local function createESP(part, text, color)
     if part:FindFirstChild("BLHUB_ESP") then return end
     local bill = Instance.new("BillboardGui", part)
@@ -24,6 +25,7 @@ local function createESP(part, text, color)
     label.TextScaled = true
 end
 
+-- Função para limpar ESP
 local function clearESP()
     for _, v in pairs(Workspace:GetDescendants()) do
         if v:FindFirstChild("BLHUB_ESP") then
@@ -32,14 +34,14 @@ local function clearESP()
     end
 end
 
--- UI
+-- Criando janela com Rayfield
 local Janela = Rayfield:CreateWindow({
-    Name = "BL HUB",
-    LoadingTitle = "BL HUB",
+    Name = "Redz Hub",
+    LoadingTitle = "Redz Hub",
     LoadingSubtitle = "Script Otimizado por Richard2407",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "BLHub",
+        FolderName = "RedzHub",
         FileName = "Config"
     }
 })
@@ -111,7 +113,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- =====================
--- Créditos
+-- ABA CRÉDITOS
 -- =====================
 local CreditosTab = Janela:CreateTab("Créditos", 4483362458)
-CreditosTab:CreateParagraph({Title = "Script feito por", Content = "Richard2407\nBL HUB para Blox Fruits\nVersão otimizada com ESP, Aimbot."})
+CreditosTab:CreateParagraph({Title = "Script feito por", Content = "Richard2407\nRedz Hub para Blox Fruits\nVersão otimizada com ESP, Aimbot e muito mais."})
