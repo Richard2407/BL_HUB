@@ -1,147 +1,93 @@
+-- BL HUB (Versão Otimizada)
 
--- BL HUB - Script Completo para Blox Fruits
-
--- Carrega Rayfield UI
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
-local Players = game:GetService("Players")
+local Players, RunService, Workspace, TeleportService = game:GetService("Players"), game:GetService("RunService"), game:GetService("Workspace"), game:GetService("TeleportService")
 local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
 
--- Funções auxiliares
+-- Utilitários
 local function createESP(part, text, color)
     if part:FindFirstChild("BLHUB_ESP") then return end
-    local bill = Instance.new("BillboardGui", part)
-    bill.Name = "BLHUB_ESP"
-    bill.AlwaysOnTop = true
-    bill.Size = UDim2.new(0, 100, 0, 40)
-    bill.Adornee = part
+    local esp = Instance.new("BillboardGui", part)
+    esp.Name = "BLHUB_ESP"
+    esp.Size = UDim2.new(0, 100, 0, 40)
+    esp.AlwaysOnTop, esp.Adornee = true, part
 
-    local label = Instance.new("TextLabel", bill)
-    label.Text = text
-    label.BackgroundTransparency = 1
-    label.TextColor3 = color
+    local label = Instance.new("TextLabel", esp)
     label.Size = UDim2.new(1, 0, 1, 0)
-    label.TextScaled = true
+    label.BackgroundTransparency, label.TextScaled = 1, true
+    label.Text, label.TextColor3 = text, color
 end
 
 local function clearESP()
     for _, v in pairs(Workspace:GetDescendants()) do
-        if v:FindFirstChild("BLHUB_ESP") then
-            v.BLHUB_ESP:Destroy()
-        end
+        local gui = v:FindFirstChild("BLHUB_ESP")
+        if gui then gui:Destroy() end
     end
 end
 
--- Interface principal
+-- Interface
 local Window = Rayfield:CreateWindow({
-   Name = "BL HUB",
-   LoadingTitle = "BL HUB",
-   LoadingSubtitle = "Script Personalizado",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "BLHub",
-      FileName = "Config"
-   }
+    Name = "BL HUB",
+    LoadingTitle = "BL HUB",
+    LoadingSubtitle = "Script Personalizado",
+    ConfigurationSaving = { Enabled = false }
 })
 
--- ==============================
--- TAB ESP
--- ==============================
+-- ABA ESP
 local ESPTab = Window:CreateTab("ESP", 4483362458)
-local espFrutas = false
-local espBaus = false
-local espPlayers = false
-local espNpcs = false
+local options = { frutas = false, baus = false, players = false, npcs = false }
 
-ESPTab:CreateToggle({
-   Name = "ESP Frutas",
-   CurrentValue = false,
-   Callback = function(val)
-      espFrutas = val
-   end
-})
-
-ESPTab:CreateToggle({
-   Name = "ESP Baús",
-   CurrentValue = false,
-   Callback = function(val)
-      espBaus = val
-   end
-})
-
-ESPTab:CreateToggle({
-   Name = "ESP Jogadores",
-   CurrentValue = false,
-   Callback = function(val)
-      espPlayers = val
-   end
-})
-
-ESPTab:CreateToggle({
-   Name = "ESP NPCs",
-   CurrentValue = false,
-   Callback = function(val)
-      espNpcs = val
-   end
-})
+for key, name in pairs({ frutas = "ESP Frutas", baus = "ESP Baús", players = "ESP Jogadores", npcs = "ESP NPCs" }) do
+    ESPTab:CreateToggle({
+        Name = name,
+        CurrentValue = false,
+        Callback = function(val) options[key] = val end
+    })
+end
 
 RunService.RenderStepped:Connect(function()
     clearESP()
-    for _, v in pairs(Workspace:GetDescendants()) do
-        if espFrutas and v:IsA("Tool") and v:FindFirstChild("Handle") then
-            createESP(v.Handle, "Fruta", Color3.fromRGB(0, 255, 127))
-        end
-        if espBaus and v.Name:lower():find("chest") then
-            createESP(v, "Baú", Color3.fromRGB(255, 255, 0))
-        end
-        if espPlayers and v:IsA("Model") and Players:GetPlayerFromCharacter(v) and v:FindFirstChild("HumanoidRootPart") then
-            createESP(v.HumanoidRootPart, v.Name, Color3.fromRGB(0, 170, 255))
-        end
-        if espNpcs and v:IsA("Model") and not Players:GetPlayerFromCharacter(v) and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChildOfClass("Humanoid") then
-            createESP(v.HumanoidRootPart, "NPC", Color3.fromRGB(255, 85, 0))
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        local isTool, isModel = obj:IsA("Tool") and obj:FindFirstChild("Handle"), obj:IsA("Model")
+        if options.frutas and isTool then
+            createESP(obj.Handle, "Fruta", Color3.fromRGB(0, 255, 127))
+        elseif options.baus and obj.Name:lower():find("chest") then
+            createESP(obj, "Baú", Color3.fromRGB(255, 255, 0))
+        elseif isModel then
+            local hrp = obj:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                if options.players and Players:GetPlayerFromCharacter(obj) then
+                    createESP(hrp, obj.Name, Color3.fromRGB(0, 170, 255))
+                elseif options.npcs and obj:FindFirstChildOfClass("Humanoid") then
+                    createESP(hrp, "NPC", Color3.fromRGB(255, 85, 0))
+                end
+            end
         end
     end
 end)
 
--- ==============================
--- TAB AIMBOT
--- ==============================
+-- ABA AIMBOT
 local AimbotTab = Window:CreateTab("Aimbot", 4483362458)
-local aimAtPlayers = false
-local aimAtNPCs = false
-local aimbotEnabled = false
+local aimSettings = { enabled = false, players = false, npcs = false }
 
-AimbotTab:CreateToggle({
-   Name = "Aimbot em Players",
-   CurrentValue = false,
-   Callback = function(v) aimAtPlayers = v end
-})
+for key, label in pairs({ enabled = "Ativar Aimbot", players = "Aimbot em Players", npcs = "Aimbot em NPCs" }) do
+    AimbotTab:CreateToggle({
+        Name = label,
+        CurrentValue = false,
+        Callback = function(val) aimSettings[key] = val end
+    })
+end
 
-AimbotTab:CreateToggle({
-   Name = "Aimbot em NPCs",
-   CurrentValue = false,
-   Callback = function(v) aimAtNPCs = v end
-})
-
-AimbotTab:CreateToggle({
-   Name = "Ativar Aimbot",
-   CurrentValue = false,
-   Callback = function(v) aimbotEnabled = v end
-})
-
-local function getClosestTarget()
-    local closest, dist = nil, math.huge
-    for _, v in pairs(Workspace:GetDescendants()) do
+local function getTarget()
+    local closest, shortest = nil, 100
+    for _, v in ipairs(Workspace:GetDescendants()) do
         local hrp = v:FindFirstChild("HumanoidRootPart")
         if hrp and v:FindFirstChildOfClass("Humanoid") then
             local isPlayer = Players:GetPlayerFromCharacter(v) ~= nil
-            if (aimAtPlayers and isPlayer) or (aimAtNPCs and not isPlayer) then
+            if (aimSettings.players and isPlayer) or (aimSettings.npcs and not isPlayer) then
                 local mag = (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
-                if mag < dist and mag < 100 then
-                    dist = mag
-                    closest = hrp
+                if mag < shortest then
+                    shortest, closest = mag, hrp
                 end
             end
         end
@@ -150,81 +96,70 @@ local function getClosestTarget()
 end
 
 RunService.RenderStepped:Connect(function()
-    if aimbotEnabled then
-        local target = getClosestTarget()
+    if aimSettings.enabled then
+        local target = getTarget()
         if target then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(
-                LocalPlayer.Character.HumanoidRootPart.Position,
-                Vector3.new(target.Position.X, target.Position.Y, target.Position.Z)
-            )
+            local cf = CFrame.new(LocalPlayer.Character.HumanoidRootPart.Position, target.Position)
+            LocalPlayer.Character.HumanoidRootPart.CFrame = cf
         end
     end
 end)
 
--- ==============================
--- TAB MISC
--- ==============================
+-- ABA MISC
 local MiscTab = Window:CreateTab("Misc", 4483362458)
 
--- Desbugar
 MiscTab:CreateButton({
-   Name = "Desbugar Personagem",
-   Callback = function()
-      LocalPlayer.Character:BreakJoints()
-   end,
+    Name = "Desbugar Personagem",
+    Callback = function()
+        LocalPlayer.Character:BreakJoints()
+    end
 })
 
--- Rejoin
 MiscTab:CreateButton({
-   Name = "Reentrar no Servidor",
-   Callback = function()
-      local ts = game:GetService("TeleportService")
-      ts:Teleport(game.PlaceId, LocalPlayer)
-   end,
+    Name = "Reentrar no Servidor",
+    Callback = function()
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+    end
 })
 
--- Velocidade
 MiscTab:CreateSlider({
-   Name = "Velocidade do Jogador",
-   Range = {16, 100},
-   Increment = 1,
-   CurrentValue = 16,
-   Callback = function(Value)
-      LocalPlayer.Character.Humanoid.WalkSpeed = Value
-   end,
+    Name = "Velocidade do Jogador",
+    Range = {16, 100},
+    Increment = 1,
+    CurrentValue = 16,
+    Callback = function(val)
+        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then humanoid.WalkSpeed = val end
+    end
 })
 
--- Dash infinito
 MiscTab:CreateToggle({
-   Name = "Dash Infinito",
-   CurrentValue = false,
-   Callback = function(val)
-      if val then
-         local mt = getrawmetatable(game)
-         setreadonly(mt, false)
-         local old = mt.__namecall
-         mt.__namecall = newcclosure(function(...)
-            local args = {...}
-            if getnamecallmethod() == "FireServer" and tostring(args[1]) == "Dash" then
-               return nil -- Cancela o gasto de energia
-            end
-            return old(...)
-         end)
-      end
-   end
+    Name = "Dash Infinito",
+    CurrentValue = false,
+    Callback = function(val)
+        if val then
+            local mt = getrawmetatable(game)
+            setreadonly(mt, false)
+            local old = mt.__namecall
+            mt.__namecall = newcclosure(function(self, ...)
+                local method = getnamecallmethod()
+                if method == "FireServer" and tostring(self) == "Dash" then return end
+                return old(self, ...)
+            end)
+        end
+    end
 })
 
--- Habilidades infinitas (sem cooldown)
 MiscTab:CreateToggle({
-   Name = "Habilidades Infinitas",
-   CurrentValue = false,
-   Callback = function(val)
-      if val then
-         for _, v in pairs(getgc(true)) do
-            if type(v) == "function" and getinfo(v).name == "GetCooldown" then
-               hookfunction(v, function(...) return 0 end)
+    Name = "Habilidades Infinitas",
+    CurrentValue = false,
+    Callback = function(val)
+        if val then
+            for _, f in ipairs(getgc(true)) do
+                if typeof(f) == "function" and getinfo(f).name == "GetCooldown" then
+                    hookfunction(f, function(...) return 0 end)
+                end
             end
-         end
-      end
-   end
+        end
+    end
 })
