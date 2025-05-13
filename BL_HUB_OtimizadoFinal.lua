@@ -1,31 +1,46 @@
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
+-- Carregando utilitários do repositório
 local Utils = loadstring(game:HttpGet("https://raw.githubusercontent.com/Richard2407/BL_HUB/main/utils.lua"))()
 
--- Loop otimizado
+-- Função auxiliar para obter chaves da tabela
+local function tableKeys(tbl)
+    local keys = {}
+    for k, _ in pairs(tbl) do
+        table.insert(keys, k)
+    end
+    return keys
+end
+
+-- Loop de renderização com ESP básico
 RunService.RenderStepped:Connect(function()
-    -- Aqui poderia haver lógica de ESP, Aimbot, etc
+    local enemy = workspace:FindFirstChild("Dummy")
+    if enemy and enemy:IsA("Model") and enemy:FindFirstChild("Head") then
+        if not enemy.Head:FindFirstChildOfClass("BillboardGui") then
+            Utils.createESP(enemy.Head, "Inimigo", Color3.new(1, 0, 0))
+        end
+    end
 end)
 
--- Interface Simples (BL HUB)
+-- Interface do BL HUB
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = library.CreateLib("BL HUB", "Ocean")
 
+-- Aba Misc
 local miscTab = Window:CreateTab("Misc", 4483362458)
 
 miscTab:CreateButton({
-   Name = "Velocidade Máxima",
-   Callback = function()
-       if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-           LocalPlayer.Character.Humanoid.WalkSpeed = 500
-       end
-   end
+    Name = "Velocidade Máxima",
+    Callback = function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = 500
+        end
+    end
 })
 
--- Teleporte para Ilhas
+-- Teleportes
 local Teleports = {
     ["Starter Island"] = CFrame.new(-260, 6, 268),
     ["Jungle"] = CFrame.new(-1617, 11, 157),
@@ -43,7 +58,7 @@ local teleportTab = Window:CreateTab("Teleportes", 4483362458)
 
 teleportTab:CreateDropdown({
     Name = "Selecionar Ilha",
-    Options = table.keys(Teleports),
+    Options = tableKeys(Teleports),
     CurrentOption = "",
     Callback = function(option)
         local cf = Teleports[option]
